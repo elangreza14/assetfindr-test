@@ -13,4 +13,7 @@ stack-down:
 gen:
 	go generate ./...
 
-.PHONY: run-http stack-up stack-down
+test-cover:
+	go test -coverprofile=coverage.out ./... ; go tool cover -html=coverage.out
+
+.PHONY: run-http stack-up stack-down gen test-coverage

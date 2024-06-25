@@ -144,9 +144,6 @@ func (ps *PostService) UpdatePost(ctx context.Context, req dto.CreateOrUpdatePos
 		Tags:    newTagsToBeSave,
 	}, prevTagsIDToBeDelete...)
 	if err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return err
-		}
 		return err
 	}
 
@@ -154,7 +151,6 @@ func (ps *PostService) UpdatePost(ctx context.Context, req dto.CreateOrUpdatePos
 }
 
 func (ps *PostService) DeletePost(ctx context.Context, id int) error {
-
 	post, err := ps.postRepository.GetPost(ctx, id)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {

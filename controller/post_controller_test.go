@@ -109,7 +109,6 @@ func (suite *TestPostControllerSuite) TestPostController_GetPosts() {
 	routes.PostRoute(apiGroup, postController)
 
 	suite.Run("error from service", func() {
-
 		suite.MockPostService.EXPECT().GetPosts(gomock.Any()).Return(nil, errors.New("test error from service"))
 		req, _ := http.NewRequest(http.MethodGet, "/api/posts", nil)
 		req.Header.Set("Content-Type", "application/json")
@@ -123,7 +122,6 @@ func (suite *TestPostControllerSuite) TestPostController_GetPosts() {
 	})
 
 	suite.Run("success", func() {
-
 		suite.MockPostService.EXPECT().GetPosts(gomock.Any()).Return([]dto.GetPostResponse{{
 			ID:      1,
 			Title:   "test",
@@ -139,6 +137,14 @@ func (suite *TestPostControllerSuite) TestPostController_GetPosts() {
 		responseData, _ := io.ReadAll(w.Body)
 		suite.Equal(`{"data":[{"id":1,"title":"test","content":"test","tags":["test"]}],"result":"ok"}`, string(responseData))
 		suite.Equal(http.StatusOK, w.Code)
+	})
+}
+
+func (suite *TestPostControllerSuite) TestPostController_NewPostController() {
+	postController := controller.NewPostController(suite.MockPostService)
+
+	suite.Run("builder", func() {
+		suite.NotNil(postController)
 	})
 }
 

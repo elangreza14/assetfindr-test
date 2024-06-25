@@ -1,5 +1,7 @@
 package service
 
+//go:generate mockgen -source $GOFILE -destination ../mock/service/mock_$GOFILE -package $GOPACKAGE
+
 import (
 	"context"
 	"errors"
@@ -29,7 +31,7 @@ func NewPostService(postRepository IPostRepository) *PostService {
 	}
 }
 
-func (ps *PostService) GetPosts(ctx context.Context, ids ...int) ([]dto.GetPostResponse, error) {
+func (ps *PostService) GetPosts(ctx context.Context) ([]dto.GetPostResponse, error) {
 	posts, err := ps.postRepository.GetPosts(ctx)
 	if err != nil {
 		return nil, err
@@ -76,9 +78,11 @@ func (ps *PostService) CreatePost(ctx context.Context, req dto.CreateOrUpdatePos
 func (ps *PostService) GetPost(ctx context.Context, id int) (*dto.GetPostResponse, error) {
 	post, err := ps.postRepository.GetPost(ctx, id)
 	if err != nil {
-		// TODO construct into proper error
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, err
+			return nil, dto.ErrorNotFound{
+				EntityName: "post",
+				EntityID:   id,
+			}
 		}
 		return nil, err
 	}
@@ -99,9 +103,11 @@ func (ps *PostService) GetPost(ctx context.Context, id int) (*dto.GetPostRespons
 func (ps *PostService) UpdatePost(ctx context.Context, req dto.CreateOrUpdatePostRequest, id int) error {
 	post, err := ps.postRepository.GetPost(ctx, id)
 	if err != nil {
-		// TODO construct into proper error
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return err
+			return dto.ErrorNotFound{
+				EntityName: "post",
+				EntityID:   id,
+			}
 		}
 		return err
 	}
@@ -151,9 +157,11 @@ func (ps *PostService) DeletePost(ctx context.Context, id int) error {
 
 	post, err := ps.postRepository.GetPost(ctx, id)
 	if err != nil {
-		// TODO construct into proper error
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return err
+			return dto.ErrorNotFound{
+				EntityName: "post",
+				EntityID:   id,
+			}
 		}
 		return err
 	}

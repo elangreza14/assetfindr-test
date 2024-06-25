@@ -18,21 +18,12 @@ import (
 
 func main() {
 
-	// TODO POSTGRES CONNECTION
-	// TODO GORM
-	// TODO GIN ROUTE
-	// TODO GRACEFUL SHUTDOWN
+	// TODO LOGS
+	// TODO GRACEFUL SHUTDOWN implement this https://medium.com/tokopedia-engineering/gracefully-shutdown-your-go-application-9e7d5c73b5ac
 	// TODO MAKEFILE
-	// TODO CONTROLLER + dependency injection
 	// TODO TEST CONTROLLER => http + mock service
-	// TODO SERVICE + dependency injection
 	// TODO TEST SERVICE => service + mock db
-	// TODO REPOSITORY + dependency injection
 	// TODO TEST REPOSITORY => mock sql db
-	// TODO error handling
-	// TODO model handling
-	// TODO dto
-	// TODO dto validation
 
 	err := godotenv.Load()
 	errChecker(err)
@@ -43,7 +34,8 @@ func main() {
 	})
 	errChecker(err)
 
-	db.AutoMigrate(model.Post{}, model.Tag{})
+	err = db.AutoMigrate(model.Post{}, model.Tag{})
+	errChecker(err)
 
 	postRepository := repository.NewPostRepository(db)
 	postService := service.NewPostService(postRepository)

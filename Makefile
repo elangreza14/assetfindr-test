@@ -10,4 +10,7 @@ stack-up:
 stack-down:
 	docker compose down
 
+gen:
+	go generate ./...
+
 .PHONY: run-http stack-up stack-down

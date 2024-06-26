@@ -26,7 +26,7 @@ and application ready to serve in desired port
 
 this projects is using http api
 
-- get list of post 
+#### 1. get list of post 
 
 to get list of post 
 ```
@@ -63,7 +63,7 @@ and the response will look like this
 }
 ```
 
-- get post by id
+#### 2. get post by id
 
 to get 1 post by id 
 ```
@@ -89,7 +89,7 @@ and the response will look like this
 }
 ```
 
-- create post
+#### 3. create post
 
 to create post by id 
 ```
@@ -112,7 +112,7 @@ and the response will look like this
 }
 ```
 
-- update post
+#### 4. update post
 
 to update post by id 
 ```
@@ -136,7 +136,7 @@ and the response will look like this
 ```
 
 
-- delete post
+#### 5. delete post
 
 to delete post by id 
 ```

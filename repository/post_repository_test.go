@@ -163,6 +163,55 @@ func (suite *TestPostRepositorySuite) TestPostRepository_CreatePost() {
 		err := suite.postRepo.CreatePost(context.Background(), testReq)
 		suite.NoError(err)
 	})
+
+	suite.Run("err insert tags", func() {
+
+		suite.mock.ExpectBegin()
+		suite.mock.ExpectQuery(
+			regexp.QuoteMeta(`INSERT INTO "posts" ("title","content") VALUES ($1,$2) RETURNING "id"`)).
+			WithArgs("test", "test").WillReturnRows(sqlmock.NewRows([]string{"id"}).AddRow(1))
+		suite.mock.ExpectQuery(regexp.QuoteMeta(
+			`SELECT * FROM "tags" WHERE "tags"."label" = $1 ORDER BY "tags"."id" LIMIT $2`)).
+			WithArgs("test", 1).
+			WillReturnRows(sqlmock.NewRows([]string{"id", "label"}).AddRow(1, "test"))
+		suite.mock.ExpectExec(regexp.QuoteMeta(`INSERT INTO post_tags ("post_id","tag_id") VALUES ($1, $2) ON CONFLICT DO NOTHING`)).
+			WithArgs(1, 1).WillReturnError(errors.New("err"))
+
+		suite.mock.ExpectRollback()
+
+		err := suite.postRepo.CreatePost(context.Background(), testReq)
+		suite.Error(err)
+	})
+
+	suite.Run("err insert post", func() {
+
+		suite.mock.ExpectBegin()
+		suite.mock.ExpectQuery(
+			regexp.QuoteMeta(`INSERT INTO "posts" ("title","content") VALUES ($1,$2) RETURNING "id"`)).
+			WithArgs("test", "test").WillReturnError(errors.New("err"))
+
+		suite.mock.ExpectRollback()
+
+		err := suite.postRepo.CreatePost(context.Background(), testReq)
+		suite.Error(err)
+	})
+
+	suite.Run("err get tags", func() {
+
+		suite.mock.ExpectBegin()
+		suite.mock.ExpectQuery(
+			regexp.QuoteMeta(`INSERT INTO "posts" ("title","content") VALUES ($1,$2) RETURNING "id"`)).
+			WithArgs("test", "test").WillReturnRows(sqlmock.NewRows([]string{"id"}).AddRow(1))
+		suite.mock.ExpectQuery(regexp.QuoteMeta(
+			`SELECT * FROM "tags" WHERE "tags"."label" = $1 ORDER BY "tags"."id" LIMIT $2`)).
+			WithArgs("test", 1).
+			WillReturnError(errors.New("err"))
+
+		suite.mock.ExpectRollback()
+
+		err := suite.postRepo.CreatePost(context.Background(), testReq)
+		suite.Error(err)
+	})
 }
 
 func (suite *TestPostRepositorySuite) TestPostRepository_UpdatePost() {
@@ -197,6 +246,75 @@ func (suite *TestPostRepositorySuite) TestPostRepository_UpdatePost() {
 		err := suite.postRepo.UpdatePost(context.Background(), testReq, 1)
 		suite.NoError(err)
 	})
+
+	suite.Run("err insert into post tags", func() {
+
+		suite.mock.ExpectBegin()
+		suite.mock.ExpectExec(regexp.QuoteMeta(`DELETE FROM post_tags WHERE post_id=$1 and tag_id IN ($2);`)).
+			WithArgs(1, 1).WillReturnResult(driver.ResultNoRows)
+		updUserSQL := "UPDATE \"posts\" SET .+"
+		suite.mock.ExpectExec(updUserSQL).
+			WithArgs("test", "test", 1).
+			WillReturnResult(sqlmock.NewResult(1, 1))
+		suite.mock.ExpectQuery(regexp.QuoteMeta(
+			`SELECT * FROM "tags" WHERE "tags"."label" = $1 ORDER BY "tags"."id" LIMIT $2`)).
+			WithArgs("test 1", 1).
+			WillReturnRows(sqlmock.NewRows([]string{"id", "label"}).AddRow(1, "test 1"))
+		suite.mock.ExpectExec(regexp.QuoteMeta(`INSERT INTO post_tags ("post_id","tag_id") VALUES ($1, $2) ON CONFLICT DO NOTHING`)).
+			WithArgs(1, 1).WillReturnError(errors.New("err"))
+
+		suite.mock.ExpectRollback()
+
+		err := suite.postRepo.UpdatePost(context.Background(), testReq, 1)
+		suite.Error(err)
+	})
+
+	suite.Run("err first or create", func() {
+
+		suite.mock.ExpectBegin()
+		suite.mock.ExpectExec(regexp.QuoteMeta(`DELETE FROM post_tags WHERE post_id=$1 and tag_id IN ($2);`)).
+			WithArgs(1, 1).WillReturnResult(driver.ResultNoRows)
+		updUserSQL := "UPDATE \"posts\" SET .+"
+		suite.mock.ExpectExec(updUserSQL).
+			WithArgs("test", "test", 1).
+			WillReturnResult(sqlmock.NewResult(1, 1))
+		suite.mock.ExpectQuery(regexp.QuoteMeta(
+			`SELECT * FROM "tags" WHERE "tags"."label" = $1 ORDER BY "tags"."id" LIMIT $2`)).
+			WithArgs("test 1", 1).WillReturnError(errors.New("err"))
+
+		suite.mock.ExpectRollback()
+
+		err := suite.postRepo.UpdatePost(context.Background(), testReq, 1)
+		suite.Error(err)
+	})
+
+	suite.Run("err first or create 2", func() {
+
+		suite.mock.ExpectBegin()
+		suite.mock.ExpectExec(regexp.QuoteMeta(`DELETE FROM post_tags WHERE post_id=$1 and tag_id IN ($2);`)).
+			WithArgs(1, 1).WillReturnResult(driver.ResultNoRows)
+		updUserSQL := "UPDATE \"posts\" SET .+"
+		suite.mock.ExpectExec(updUserSQL).
+			WithArgs("test", "test", 1).
+			WillReturnError(errors.New("err"))
+
+		suite.mock.ExpectRollback()
+
+		err := suite.postRepo.UpdatePost(context.Background(), testReq, 1)
+		suite.Error(err)
+	})
+
+	suite.Run("err delete post tags", func() {
+
+		suite.mock.ExpectBegin()
+		suite.mock.ExpectExec(regexp.QuoteMeta(`DELETE FROM post_tags WHERE post_id=$1 and tag_id IN ($2);`)).
+			WithArgs(1, 1).WillReturnError(errors.New("err"))
+
+		suite.mock.ExpectRollback()
+
+		err := suite.postRepo.UpdatePost(context.Background(), testReq, 1)
+		suite.Error(err)
+	})
 }
 
 func (suite *TestPostRepositorySuite) TestPostRepository_DeletePost() {
@@ -217,5 +335,32 @@ func (suite *TestPostRepositorySuite) TestPostRepository_DeletePost() {
 
 		err := suite.postRepo.DeletePost(context.Background(), testReq)
 		suite.NoError(err)
+	})
+
+	suite.Run("err delete", func() {
+
+		suite.mock.ExpectBegin()
+		suite.mock.ExpectExec(regexp.QuoteMeta(`DELETE FROM post_tags WHERE post_id=$1;`)).
+			WithArgs(1).WillReturnError(errors.New("err db"))
+
+		suite.mock.ExpectRollback()
+
+		err := suite.postRepo.DeletePost(context.Background(), testReq)
+		suite.Error(err)
+	})
+
+	suite.Run("err delete", func() {
+
+		suite.mock.ExpectBegin()
+		suite.mock.ExpectExec(regexp.QuoteMeta(`DELETE FROM post_tags WHERE post_id=$1;`)).
+			WithArgs(1).WillReturnResult(sqlmock.NewResult(1, 1))
+		suite.mock.ExpectExec(regexp.QuoteMeta(`DELETE FROM "posts" WHERE "posts"."id" = $1`)).
+			WithArgs(1).
+			WillReturnError(errors.New("err db"))
+
+		suite.mock.ExpectRollback()
+
+		err := suite.postRepo.DeletePost(context.Background(), testReq)
+		suite.Error(err)
 	})
 }

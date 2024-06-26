@@ -26,24 +26,17 @@ import (
 )
 
 func main() {
-
-	// TODO GRACEFUL SHUTDOWN implement this https://medium.com/tokopedia-engineering/gracefully-shutdown-your-go-application-9e7d5c73b5ac
-	// TODO MAKEFILE
-	// TODO CI CD
-	// TODO Readme
-	// TODO Docs swagger
-
+	// setup env
 	err := godotenv.Load()
 	errChecker(err)
 
-	logger := zap.NewExample(zap.IncreaseLevel(zap.InfoLevel))
-	if os.Getenv("ENV") != "DEVELOPMENT" {
-		logger, err = zap.NewProduction()
-		errChecker(err)
-	}
+	// logger
+	logger, err := Logger()
+	errChecker(err)
 	defer logger.Sync()
 
-	db, err := DbConn()
+	// db connection
+	db, err := Db()
 	errChecker(err)
 
 	// dependency injection
@@ -104,7 +97,7 @@ func errChecker(err error) {
 	}
 }
 
-func DbConn() (*gorm.DB, error) {
+func Db() (*gorm.DB, error) {
 	conn := fmt.Sprintf("postgres://%s:%s@%s:%s/%s?sslmode=%s",
 		os.Getenv("POSTGRES_USER"),
 		os.Getenv("POSTGRES_PASSWORD"),
@@ -125,6 +118,16 @@ func DbConn() (*gorm.DB, error) {
 	}
 
 	return db, nil
+}
+
+func Logger() (*zap.Logger, error) {
+	logger := zap.NewExample(zap.IncreaseLevel(zap.InfoLevel))
+
+	if os.Getenv("ENV") != "DEVELOPMENT" {
+		return zap.NewProduction()
+	}
+
+	return logger, nil
 }
 
 type operation func(ctx context.Context) error

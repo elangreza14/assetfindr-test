@@ -36,6 +36,32 @@ can be invoked with
 ```curl
 curl --location 'http://{{API_ENDPOINT}}/api/posts'
 ``` 
+and the response will look like this
+```json
+{
+    "data": [
+        {
+            "id": 86,
+            "title": "a",
+            "content": "a",
+            "tags": [
+                "v",
+                "b"
+            ]
+        },
+        {
+            "id": 85,
+            "title": "f",
+            "content": "g",
+            "tags": [
+                "h",
+                "i"
+            ]
+        }
+    ],
+    "result": "ok"
+}
+```
 
 - get post by id
 
@@ -47,6 +73,21 @@ can be invoked with
 ```curl
 curl --location 'http://{{API_ENDPOINT}}/api/posts/1'
 ``` 
+and the response will look like this
+```json
+{
+    "data": {
+        "id": 76,
+        "title": "Lorem 12",
+        "content": "a",
+        "tags": [
+            "Lorema",
+            "a"
+        ]
+    },
+    "result": "ok"
+}
+```
 
 - create post
 
@@ -64,6 +105,12 @@ curl --location 'http://{{API_ENDPOINT}}/api/posts' \
  "tags":["ipsum"]
 }'
 ``` 
+and the response will look like this
+```json
+{
+    "result": "created"
+}
+```
 
 - update post
 
@@ -80,7 +127,14 @@ curl --location --request PUT 'http://{{API_ENDPOINT}}/api/posts/86' \
  "content": "Upda",
  "tags": [ "Ipsum1000", "ac"]
 }'
-``` 
+```
+and the response will look like this
+```json
+{
+    "result": "updated"
+}
+```
+
 
 - delete post
 
@@ -93,8 +147,11 @@ can be invoked with
 curl --location --request DELETE 'http://{{API_ENDPOINT}}/api/posts/86' \
 --header 'Content-Type: application/json' \
 ``` 
-
-
-
+and the response will look like this
+```json
+{
+    "result": "deleted"
+}
+```
 
 
